@@ -142,6 +142,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stoveCounter: {fileID: 8360555622147728332}
+  ovenCounter: {fileID: 0}
 --- !u!1 &7004496102673083065
 GameObject:
   m_ObjectHideFlags: 0
@@ -349,6 +350,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stoveCounter: {fileID: 8360555622147728332}
+  ovenCounter: {fileID: 0}
 --- !u!95 &193570081939477053
 Animator:
   serializedVersion: 5
@@ -559,6 +561,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   stoveCounter: {fileID: 8360555622147728332}
+  ovenCounter: {fileID: 0}
 --- !u!1001 &1851074192167237959
 PrefabInstance:
   m_ObjectHideFlags: 0

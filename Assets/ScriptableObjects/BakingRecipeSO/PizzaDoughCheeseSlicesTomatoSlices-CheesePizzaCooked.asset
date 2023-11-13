@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c19bdbe8ebabfe04dae3c1bd24dbeabf, type: 3}
+  m_Name: PizzaDoughCheeseSlicesTomatoSlices-CheesePizzaCooked
+  m_EditorClassIdentifier: 
+  inputList:
+  - {fileID: 11400000, guid: d1d846fdf1706074b88be6a7bad257c7, type: 2}
+  - {fileID: 11400000, guid: ba7370ba416b82b43a956132f300ef1e, type: 2}
+  - {fileID: 11400000, guid: 1fa84af37015dbe47a2ef422cc4d300e, type: 2}
+  output: {fileID: 11400000, guid: d0617840969ff514291063020c262805, type: 2}
+  bakingTimerMax: 8

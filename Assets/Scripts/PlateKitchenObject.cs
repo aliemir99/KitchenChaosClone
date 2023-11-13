@@ -5,6 +5,8 @@ using UnityEngine;
 
 public class PlateKitchenObject : KitchenObject
 {
+    private const string BREAD = "Bread";
+    private const string DOUGH_PIZZA = "Dough Pizza";
     public event EventHandler<OnIngredientAddedEventArgs> OnIngredientAdded;
     public class OnIngredientAddedEventArgs: EventArgs
     {
@@ -24,21 +26,33 @@ public class PlateKitchenObject : KitchenObject
             //not a valid ingredient
             return false;
         }
+
         if (kitchenObjectSOList.Contains(kitchenObjectSO))
         {
             //Already has this type
             return false;
         }
-        else
+        //If trying to add bread or dough
+        if (kitchenObjectSO.objectName == BREAD || kitchenObjectSO.objectName == DOUGH_PIZZA)
         {
-            kitchenObjectSOList.Add(kitchenObjectSO);
-            OnIngredientAdded?.Invoke(this, new OnIngredientAddedEventArgs
+            //and the plate contains one or the other
+            foreach (KitchenObjectSO kitchenObject in kitchenObjectSOList)
             {
-                KitchenObjectSO = kitchenObjectSO
-            });
-            return true;
-        }
-        
+                if (kitchenObject.objectName == BREAD || kitchenObject.objectName == DOUGH_PIZZA)
+                {
+                    return false;
+                }
+            }
+          
+        } 
+
+        kitchenObjectSOList.Add(kitchenObjectSO);
+        OnIngredientAdded?.Invoke(this, new OnIngredientAddedEventArgs
+        {
+            KitchenObjectSO = kitchenObjectSO
+        });
+        return true;
+       
     } 
     public List<KitchenObjectSO> GetKitchenObjectSOList()
     {

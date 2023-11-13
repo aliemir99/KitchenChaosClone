@@ -5,6 +5,7 @@ using UnityEngine;
 public class StoveCounterSound : MonoBehaviour
 {
     [SerializeField] private StoveCounter stoveCounter;
+    [SerializeField] private OvenCounter ovenCounter;
     private AudioSource audioSource;
     private float warningSoundTimer;
     private bool playWarningSound;
@@ -15,8 +16,35 @@ public class StoveCounterSound : MonoBehaviour
     }
     private void Start()
     {
-        stoveCounter.OnStateChanged += StoveCounter_OnStateChanged;
-        stoveCounter.OnProgressChanged += StoveCounter_OnProgressChanged;
+        if (stoveCounter)
+        {
+            stoveCounter.OnStateChanged += StoveCounter_OnStateChanged;
+            stoveCounter.OnProgressChanged += StoveCounter_OnProgressChanged;
+        }
+        if (ovenCounter)
+        {
+            ovenCounter.OnStateChanged += OvenCounter_OnStateChanged;
+            ovenCounter.OnProgressChanged += OvenCounter_OnProgressChanged;
+        }
+    }
+
+    private void OvenCounter_OnProgressChanged(object sender, IHasProgress.OnProgressChangedEventArgs e)
+    {
+        float burnShowProgressAmount = .5f;
+        playWarningSound = ovenCounter.IsBaked() && e.progressNormalized >= burnShowProgressAmount;
+    }
+
+    private void OvenCounter_OnStateChanged(object sender, OvenCounter.OnStateChangedEventArgs e)
+    {
+        bool playSound = e.state == OvenCounter.State.Baking || e.state == OvenCounter.State.Baked;
+        if (playSound)
+        {
+            audioSource.Play();
+        }
+        else
+        {
+            audioSource.Pause();
+        }
     }
 
     private void StoveCounter_OnProgressChanged(object sender, IHasProgress.OnProgressChangedEventArgs e)
@@ -46,9 +74,16 @@ public class StoveCounterSound : MonoBehaviour
             {
                 float warningSoundTimerMax = .2f;
                 warningSoundTimer = warningSoundTimerMax;
+                if (stoveCounter)
+                {
+                    SoundManager.Instance.PlayWarningSound(stoveCounter.transform.position);
+                }
+                if (ovenCounter)
+                {
+                    SoundManager.Instance.PlayWarningSound(ovenCounter.transform.position);
+                }
+                
             }
-            SoundManager.Instance.PlayWarningSound(stoveCounter.transform.position);
-            Debug.Log("Sound played" + warningSoundTimer);
         }
     }
 }
