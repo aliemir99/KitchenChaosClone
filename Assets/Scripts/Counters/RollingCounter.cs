@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unity.Netcode;
 using UnityEngine;
 
 public class RollingCounter : BaseCounter,IHasProgress
@@ -30,15 +31,9 @@ public class RollingCounter : BaseCounter,IHasProgress
                 if (HasRecipeWithInput(player.GetKitchenObject().GetKitchenObjectSO()))
                 {
                     //Player is carrying something that can be rolled
-                    player.GetKitchenObject().SetKitchenObjectParent(this);
-                    rollingProgress = 0;
-
-                    RollingRecipeSO rollingRecipeSO = GetRollingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
-
-                    OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
-                    {
-                        progressNormalized = (float)rollingProgress / rollingRecipeSO.rollingProgressMax
-                    });
+                    KitchenObject kitchenObject = player.GetKitchenObject();
+                    kitchenObject.SetKitchenObjectParent(this);
+                    InteractLogicPlaceObjectOnCounterServerRpc();
                 }
 
             }
@@ -58,7 +53,7 @@ public class RollingCounter : BaseCounter,IHasProgress
                     //player is holding a Plate
                     if (plateKitchenObject.TryAddIngredient(GetKitchenObject().GetKitchenObjectSO()))
                     {
-                        GetKitchenObject().DestroySelf();
+                        KitchenObject.DestroyKitchenObject(GetKitchenObject());
                     }
                 }
             }
@@ -69,32 +64,72 @@ public class RollingCounter : BaseCounter,IHasProgress
             }
         }
     }
+    [ServerRpc(RequireOwnership = false)]
+    private void InteractLogicPlaceObjectOnCounterServerRpc()
+    {
+        InteractLogicPlaceObjectOnCounterClientRpc();
+    }
+
+    [ClientRpc]
+    private void InteractLogicPlaceObjectOnCounterClientRpc()
+    {
+        rollingProgress = 0;
+
+        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+        {
+            progressNormalized = 0f
+        });
+    }
     public override void InteractAlternate(Player player)
     {
         if (HasKitchenObject() && HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO()))
         {
             //There is a KitchenObject here AND it can be rolled
-            rollingProgress++;
+            RollObjectServerRpc();
+            TestRollingProgressDoneServerRpc();
 
-            OnRoll?.Invoke(this, EventArgs.Empty);
-            OnAnyRoll?.Invoke(this, EventArgs.Empty);
+        }
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void RollObjectServerRpc()
+    {
+        if (HasKitchenObject() && HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO()))
+        {
+            //There is a KitchenObject here AND it can be rolled
+            RollObjectClientRpc();
+        }
+    }
+    [ClientRpc]
+    private void RollObjectClientRpc()
+    {
+        rollingProgress++;
+
+        OnRoll?.Invoke(this, EventArgs.Empty);
+        OnAnyRoll?.Invoke(this, EventArgs.Empty);
 
 
+        RollingRecipeSO rollingRecipeSO = GetRollingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
+
+        OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
+        {
+            progressNormalized = (float)rollingProgress / rollingRecipeSO.rollingProgressMax
+        });
+    }
+    [ServerRpc(RequireOwnership = false)]
+    private void TestRollingProgressDoneServerRpc()
+    {
+        if (HasKitchenObject() && HasRecipeWithInput(GetKitchenObject().GetKitchenObjectSO()))
+        {
+            //There is a KitchenObject here AND it can be rolled
             RollingRecipeSO rollingRecipeSO = GetRollingRecipeSOWithInput(GetKitchenObject().GetKitchenObjectSO());
-
-            OnProgressChanged?.Invoke(this, new IHasProgress.OnProgressChangedEventArgs
-            {
-                progressNormalized = (float)rollingProgress / rollingRecipeSO.rollingProgressMax
-            });
-
             if (rollingProgress >= rollingRecipeSO.rollingProgressMax)
             {
                 KitchenObjectSO outputKitchenObjectSO = GetOutputForInput(GetKitchenObject().GetKitchenObjectSO());
-                GetKitchenObject().DestroySelf();
+
+                KitchenObject.DestroyKitchenObject(GetKitchenObject());
 
                 KitchenObject.SpawnKitchenObject(outputKitchenObjectSO, this);
             }
-
         }
     }
     private bool HasRecipeWithInput(KitchenObjectSO inputKitchenObjectSO)
